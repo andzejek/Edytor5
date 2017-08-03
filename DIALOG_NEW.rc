@@ -1,0 +1,85 @@
+﻿
+#include "DIALOG_NEW.h"
+VS_VERSION_INFO VERSIONINFO
+ FILEVERSION    0,0,0,2
+ PRODUCTVERSION 0,0,0,2
+ FILEFLAGSMASK 0x3fL
+ #ifdef _DEBUG
+ FILEFLAGS 0x1L
+ #else
+ FILEFLAGS 0x0L
+ #endif
+ FILEOS 0x4L
+ FILETYPE 0x1L
+ FILESUBTYPE 0x0L
+{
+    BLOCK "StringFileInfo"
+    {
+        BLOCK "040904b0"
+        {
+            VALUE "Comments",         "comment\0"
+            VALUE "CompanyName",      "comment\0"
+            VALUE "FileDescription",  "Simple image editor\0"
+            VALUE "FileVersion",      "0.00001c\0"
+            VALUE "InternalName",     "testTP\0"
+            VALUE "LegalCopyright",   "undefined\0"
+            VALUE "OriginalFilename", "Edytor4.exe\0"
+            VALUE "ProductName",      "BeznadziejnyPaint\0"
+            VALUE "ProductVersion",   "0.00001c\0"
+        }
+    }
+    BLOCK "VarFileInfo"
+    {
+        VALUE "Translation", 0x409, 1200
+    }
+}
+//1 24 "KIK.exe.Manifest"
+appIcon ICON "icons\\appicon.ico"
+IdIconSelectArea    BITMAP "icons\\tools\\selectarea2.bmp"
+IdIconSelectRect    BITMAP "icons\\tools\\selectrect2.bmp"
+IdIconRubber        BITMAP "icons\\tools\\rubber2.bmp"
+IdIconFillBucket    BITMAP "icons\\tools\\fillbucket2.bmp"
+IdIconGetColor      BITMAP "icons\\tools\\getcolor2.bmp"
+IdIconLupe          BITMAP "icons\\tools\\lupe2.bmp"
+IdIconPencil        BITMAP "icons\\tools\\pencil2.bmp"
+IdIconBrush         BITMAP "icons\\tools\\brush2.bmp"
+IdIconSpray         BITMAP "icons\\tools\\spray2.bmp"
+IdIconText          BITMAP "icons\\tools\\text2.bmp"
+IdIconFigures       BITMAP "icons\\tools\\figures.bmp"
+
+IdIconFSquare       BITMAP "icons\\shapes\\fsquare.bmp"
+IdIconFCircle       BITMAP "icons\\shapes\\fcircle.bmp"
+
+IdIconTransparent       BITMAP "icons\\tools\\transparent.bmp"
+IdIconNoTransparent     BITMAP "icons\\tools\\notransparent.bmp"
+
+IdIconFigureModeFrame       BITMAP "icons\\tools\\figuremodeframe.bmp"
+IdIconFigureModeFillFrame   BITMAP "icons\\tools\\figuremodefillframe.bmp"
+IdIconFigureModeFill        BITMAP "icons\\tools\\figuremodefill.bmp"
+
+IdIconFigureRectangle BITMAP "icons\\shapes\\frectangle.bmp"
+IdIconFigureEllipse BITMAP "icons\\shapes\\fcircle.bmp"
+IdIconFigureLine BITMAP "icons\\shapes\\fline.bmp"
+IdIconFigurePolygon BITMAP "icons\\shapes\\fpolygon.bmp"
+
+IDD_DIALOG_NEW DIALOG DISCARDABLE 20, 20, 200, 90
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "New"
+FONT 8, "MS Sans Serif"
+{
+    LTEXT "Width", - 1, 5, 5, 80, 10
+    EDITTEXT IDC_WIDTH, 5, 15, 30, 14, WS_TABSTOP | ES_NUMBER
+
+    LTEXT "Height", - 1, 35, 5, 80, 10
+    EDITTEXT IDC_HEIGHT, 35, 15, 30, 14, WS_TABSTOP | ES_NUMBER
+
+    DEFPUSHBUTTON "&Screen resolution", IDC_WIN_RES, 80, 15, 90, 14
+    DEFPUSHBUTTON "&Editor window resolution", IDC_EDIT_RES, 80, 30, 90, 14
+    DEFPUSHBUTTON "&Editor client resolution", IDC_CLIENT_RES, 80, 45, 90, 14
+
+    DEFPUSHBUTTON "OK", IDOK, 50, 70, 50, 14
+    DEFPUSHBUTTON "Cancel", IDCANCEL, 120, 70, 50, 14
+}
+
+//MAINICON ICON "icon3.ico"
+
