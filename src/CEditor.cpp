@@ -44,8 +44,7 @@ int CEditor::onPaint(){
 }
 int CEditor::onLeftButtonDown(short x,short y,int keys){
                 if(paintMode)
-                leftMouseButtonDownPos.x=x;
-                leftMouseButtonDownPos.y=y;
+
                 selecting=false;
                 RECT rect;
                 GetClientRect(hWindow,&rect);
@@ -55,6 +54,8 @@ int CEditor::onLeftButtonDown(short x,short y,int keys){
                 RECT drawRect=paintBuff->getDrawRect();
                 x=(x-drawRect.left)*paintBuffSize.x/drawRect.right;
                 y=(y-drawRect.top)*paintBuffSize.y/drawRect.bottom;
+                leftMouseButtonDownPos.x=x;
+                leftMouseButtonDownPos.y=y;
                 lButtonHold=true;
                 if(paintMode==MODE_LUPE) paintBuff->scaleUp();
                 if(paintMode==MODE_GEOMETRY)
@@ -238,6 +239,10 @@ int CEditor::onMouseMove(short x,short y,int keys){
             return 0;
 }
 int CEditor::onLeftButtonUp(short x,short y,int keys){
+                POINT paintBuffSize=paintBuff->getSize();
+                RECT drawRect=paintBuff->getDrawRect();
+                x=(x-drawRect.left)*paintBuffSize.x/drawRect.right;
+                y=(y-drawRect.top)*paintBuffSize.y/drawRect.bottom;
                 if(selectStart.x>selectEnd.x)
                 {
                     int temp=selectStart.x;
