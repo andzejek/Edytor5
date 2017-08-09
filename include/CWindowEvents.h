@@ -1,6 +1,7 @@
 #ifndef CWINDOWEVENTS_H
 #define CWINDOWEVENTS_H
 #include "../stdafx.h"
+///satyczna tablica w ktorej bedziemy zliczac
 struct Event{///still useless
     HWND hwnd;
     UINT msg;

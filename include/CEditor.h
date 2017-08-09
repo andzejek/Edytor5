@@ -9,13 +9,13 @@
 
 //#include <CommCtrl.h>
 #include "../DIALOG_NEW.h"
-
+///pamietaj ze menu kiedy nie jest powiązane z oknem nie ulega usunięciu?(co zrobić z tym fantem?)
 
 extern wchar_t EditorClassName[];
 extern wchar_t PaintToolsClassName[];
 extern wchar_t ColorPaletteClassName[];
 extern wchar_t ShapesToolClassName[];
-BOOL OpenSaveDialog(HWND, LPWSTR, WORD, BOOL);
+BOOL OpenSaveImageDialog(HWND, LPWSTR, WORD, BOOL);
 class CEditor : public CWindowEvents{
     uint64_t rdtsc(){
     unsigned int lo,hi;
@@ -37,25 +37,7 @@ class CEditor : public CWindowEvents{
     int onPaint() override;
     int onMouseWheel(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) override;
 
-    void switchFullScreen()
-    {
-        if(fullScreen)
-                    {
-                        fullScreen=false;
-                        SetWindowLong(hWindow,GWL_STYLE,WS_OVERLAPPEDWINDOW|WS_VSCROLL|WS_HSCROLL);
-                        ShowWindow(hWindow,SW_SHOWMAXIMIZED);
-                    }
-                    else
-                    {
-                        fullScreen=true;
-                        SetWindowLong(hWindow,GWL_STYLE,WS_POPUP);
-                        SetMenu(hWindow,0);
-                        menuIsVisible=false;
-                        ShowWindow(hWindow,SW_SHOW);
-                        //menu.set(hWindow);
-                        SetWindowPos(hWindow,0,0,0,GetSystemMetrics(SM_CXSCREEN),GetSystemMetrics(SM_CYSCREEN),SWP_NOZORDER | SWP_SHOWWINDOW);
-                    }
-    }
+    void switchFullScreen();
     HWND paintToolsWnd,colorPaletteWnd;
     HWND shapesToolWnd;
     HWND edit;
@@ -70,6 +52,8 @@ public:
     void drawPaintBuffer(CPaintBuffer*);///to wazne do zrobienia moze friend?
 private:
     CPaintBuffer *paintBuff;
+    ///CPaintBuffer *layers[10];
+    ///int currentLayer=0;
     //CPaintBuffer *alphaBuff;///(1.paintBuff->nextBuff 2.alphabuff by alphablend->nextBuff 3.nextbuff->hdc!
 
     HWND hWindow;
@@ -78,11 +62,28 @@ private:
     bool menuIsVisible;
 
     HDC hdc;
-
+    struct paintSettings{///kazdy paintbuffer powinien miec swoje ustawienia rysowania! a edytor powienien miec
+                        ///tylko domyslne dla nowego? czy kazdy w zaleznosci od trybu musi miec wlasne ustawienia?
+    COLORREF color1;
+    COLORREF color2;
+    PaintMode paintMode;
+    FigureMode figureMode;
+    Figures figure;///selected shape
+    LOGFONT lf;///?? musze tutaj dopisać chyba wielkosc czcionki (kolor juz sie zmienia z palety)
+    __int16 brush[2];///orientacja pedzla
+    int cover;///to mialo być pokrycie np flamastra lub spreya
+    int penSize;///
+    bool selecting;///???
+    bool transparent;
+    POINT selectStart;///ale lepszy bedzie jako RECT? po co 2 zmienne?
+    POINT selectEnd;
+    vector <POINT> polyPoints;///chyba? chodzi o wielokąt
+    };
     PaintMode paintMode;
     FigureMode figureMode;
     Figures figure;
     LOGFONT lf;
+    __int16 brush[2];
     int cover;
     int penSize;
     bool selecting;///???
@@ -90,19 +91,23 @@ private:
     ///bool selected;????
     POINT selectStart;///Real odnosi sie do okna glownego
     POINT selectEnd;
-    POINT selectStartReal;
+    POINT selectStartReal;//moze sie jeszcze przyda? select i tak powinien być na hdc edytora i nic z tego ze migocze (ms paint tez tak ma).
     POINT selectEndReal;
-
+    bool changeLeftSelectRectBorder;
+    bool changeRightSelectRectBorder;
+    bool changeTopSelectRectBorder;
+    bool changeBottomSelectRectBorder;
+    bool changeSelectRectPos;
     RECT windowRect,clientRect;
 
     bool leftMouseButtonHold;
     POINT leftMouseButtonDownPos;
     vector <POINT> polyPoints;
-    COLORREF currentColor;
-    POINT prev,prevReal;
+    COLORREF currentColor;///nie wiem co to
+    POINT prev,prevReal;///poprzednie polozenie kursora.
     bool lButtonHold;
     COLORREF color1,color2;
-    wchar_t textBuffor[2048];///bufor textu do narysowania w paintbuforze
+    wchar_t textBuffor[2048];///bufor textu do narysowania w paintbuforze a to nie wiem czy a byc w paint settings
 };
 
 #endif // CEDITOR_H

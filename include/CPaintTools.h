@@ -46,6 +46,7 @@ enum Figures
 #define CMD_SELECTING_ON
 #define CMD_SELECTING_OFF
 #define CMD_SET_COVER 1011
+#define CMD_SET_BRUSH_DIR 1112
 
 #define CMD_SET_FIGURE 1012
 #define CMD_SET_FIGURE_MODE 1013
@@ -61,12 +62,13 @@ enum Figures
 #define BUTTON_BRUSH 8
 #define BUTTON_SPRAY 9
 #define BUTTON_TEXT 10
-#define BUTTON_FIGURES 11
 
-#define BUTTON_FIGURE_RECTANGLE 12
-#define BUTTON_FIGURE_ELLIPSE 13
-#define BUTTON_FIGURE_LINE 14
-#define BUTTON_FIGURE_POLYGON 16
+
+#define BUTTON_FIGURE_RECTANGLE 11
+#define BUTTON_FIGURE_ELLIPSE 12
+#define BUTTON_FIGURE_LINE 13
+#define BUTTON_FIGURE_POLYGON 14
+#define BUTTON_FIGURES 15
 
 #define BUTTON_NOTRANSPARENT 17
 #define BUTTON_TRANSPARENT 18
@@ -138,8 +140,10 @@ class CPaintTools : public CWindowEvents{
         HWND editCover;//for flamaster and spray,brush ... from 1 to 100;
 
 
+
         COLORREF color1,color2;
         PaintATT paintAtt;
+        __int16 brush[2];
         int cover;
         int penSize;
         int paintMode;
