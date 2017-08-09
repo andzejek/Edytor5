@@ -7,34 +7,31 @@ int CColorPalette::onCreate(CREATESTRUCT *cs){
     memdc=CreateCompatibleDC(hdc);
     if(cs->lpCreateParams!=0)
     {
-    isFromFile=true;
-    hbmColorPalette=(HBITMAP) LoadImage( NULL, (LPCWSTR)cs->lpCreateParams, IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE );
-    hbmOld=(HBITMAP)SelectObject(memdc,hbmColorPalette);
+        hbmColorPalette=(HBITMAP) loadImage((wchar_t*)cs->lpCreateParams);
+        if(hbmColorPalette)
+        {
+            hbmOld=(HBITMAP)SelectObject(memdc,hbmColorPalette);
+            BITMAP iBmp;
+            GetObject(hbmColorPalette,sizeof(BITMAP),&iBmp);
+            MoveWindow(hWindow,0,0,iBmp.bmWidth,iBmp.bmHeight,0);
+            isFromFile=true;
+        }
+        else DestroyWindow(hWindow);
     }
     else
     {
         isFromFile=false;
-        BITMAPINFO BitmapInfo;
-        ZeroMemory(&BitmapInfo,sizeof(BITMAPINFO));
-        BitmapInfo.bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
-        BitmapInfo.bmiHeader.biWidth = 256;
-        BitmapInfo.bmiHeader.biHeight = -300;
-        BitmapInfo.bmiHeader.biPlanes = 1;
-        BitmapInfo.bmiHeader.biBitCount = 32;
-        BitmapInfo.bmiHeader.biCompression = BI_RGB;
-
-        hbmColorPalette = CreateDIBSection(hdc, &BitmapInfo, DIB_RGB_COLORS, (void**)&pRgb, NULL, 0);
-    //hbmColorPalette=CreateCompatibleBitmap(hdc,256,300);
-    hbmOld=(HBITMAP)SelectObject(memdc,hbmColorPalette);
-    for(int ix=0;ix<256;ix++)
-    for(int iy=0;iy<22;iy++)SetPixel(memdc,ix,iy,RGB(255,255,255));
-    for(int ix=0;ix<256;ix++)
-    for(int iy=278;iy<300;iy++)SetPixel(memdc,ix,iy,RGB(0,0,0));
-    for(int ix=0;ix<256;ix++)
-    for(int iy=22;iy<278;iy++)
-    {
-        SetPixel(memdc,ix,iy,HSLtoRGB(ix/256.0f*360.0f,1,(256-iy+22)/256.0f));
-    }
+        hbmColorPalette=create32DIB(hdc,256,300,&pRgb);
+        hbmOld=(HBITMAP)SelectObject(memdc,hbmColorPalette);
+        for(int ix=0;ix<256;ix++)
+        for(int iy=0;iy<22;iy++)SetPixel(memdc,ix,iy,RGB(255,255,255));
+        for(int ix=0;ix<256;ix++)
+        for(int iy=278;iy<300;iy++)SetPixel(memdc,ix,iy,RGB(0,0,0));
+        for(int ix=0;ix<256;ix++)
+        for(int iy=22;iy<278;iy++)
+        {
+            SetPixel(memdc,ix,iy,HSLtoRGB(ix/256.0f*360.0f,1,(256-iy+22)/256.0f));
+        }
     }
     return 0;
 }
@@ -89,12 +86,12 @@ int CColorPalette::onPaint(){
     return 0;
 }
 int CColorPalette::onLeftButtonDown(short x,short y,int keys){
+    lButtonDown=true;
     posible=false;
     InvalidateRect(hWindow,0,0);
     SendMessage(hWindow,WM_PAINT,0,0);
     SendMessage(hParentWindow,WM_COMMAND,CMD_SET_COLOR_1,GetPixel(hdc,x,y));
     lastSelectedColor.x=x;lastSelectedColor.y=y;
-    SetActiveWindow(hParentWindow);
     return 0;
 }
 int CColorPalette::onRightButtonDown(short x,short y,int keys){
@@ -113,7 +110,9 @@ int CColorPalette::onLeftButtonUp(short x,short y,int keys){
     POINT pt;
     GetCursorPos(&pt);
     ScreenToClient(hParentWindow,&pt);
-    SendMessage(hParentWindow,WM_LBUTTONUP,keys,MAKELPARAM(pt.x,pt.y));
+    if(!lButtonDown)SendMessage(hParentWindow,WM_LBUTTONUP,keys,MAKELPARAM(pt.x,pt.y));
+    lButtonDown=false;
+    SetActiveWindow(hParentWindow);
     return 0;
 }
 int CColorPalette::onHScroll(WPARAM wParam){

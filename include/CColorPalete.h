@@ -32,6 +32,7 @@ public:
         printf("CColorPalette: deconstructor!\n");
     }
 private:
+    bool lButtonDown;
     bool isFromFile;
     BYTE *pRgb;
     bool posible;
