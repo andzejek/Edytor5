@@ -134,16 +134,8 @@ int CPaintTools::onPaint(){
     Rectangle(hdc,30,346,70,306);
     SelectObject(hdc,brush1);
     Rectangle(hdc,10,326,50,286);
-    HPEN oldPen=(HPEN)SelectObject(hdc,CreatePen(PS_SOLID,2,0));
-
-
-    //MoveWindow(frame,0, 292+64, clientRect.right,72,true);
-    if(paintAtt==ATT_BRUSHES)
-    {
-    MoveToEx(hdc,clientRect.right/2-brush[0],(292+64+36)-brush[1],0);
-    LineTo(hdc,clientRect.right/2+brush[0],(292+64+36)+brush[1]);
-    }
-    DeleteObject(SelectObject(hdc,oldPen));
+    SelectObject(hdc,old);
+    EndPaint(hWindow,&ps);
     SelectObject(hdc,old);
     EndPaint(hWindow,&ps);
     DeleteObject(brush1);
@@ -151,15 +143,7 @@ int CPaintTools::onPaint(){
     return 0;
 }
 int CPaintTools::onCommand(HWND hwnd,UINT message,WPARAM wParam,LPARAM lParam){
-            if(paintAtt==ATT_BRUSHES)
-            {
-                ShowWindow(buttonFigureModeFill,SW_HIDE);
-                ShowWindow(buttonFigureModeFrame,SW_HIDE);
-                ShowWindow(buttonFigureModeFillFrame,SW_HIDE);
-                ShowWindow(buttonTransparent,SW_HIDE);
-                ShowWindow(buttonNoTransparent,SW_HIDE);
-                ShowWindow(frame,SW_SHOW);
-            }
+
             if(paintAtt==ATT_NULL)
             {
                 ShowWindow(buttonFigureModeFill,SW_HIDE);
@@ -233,27 +217,27 @@ int CPaintTools::onCommand(HWND hwnd,UINT message,WPARAM wParam,LPARAM lParam){
             if(HIWORD(wParam) == 0)
             {
             selecting=false;
-            if(wParam<BUTTON_FIGURES)SendMessage((HWND)lastSelectedButton, BM_SETSTATE, false, 0);
+            if(wParam<=BUTTON_TRANSPARENT)SendMessage((HWND)lastSelectedButton, BM_SETSTATE, false, 0);
             switch(wParam)
             {
-                case BUTTON_SELECTAREA: paintMode=0;                    paintAtt=ATT_TRANSPARENT; selecting=true;    break;
-                case BUTTON_SELECTRECT: paintMode=MODE_SELECT;          paintAtt=ATT_TRANSPARENT; selecting=true;    break;
-                case BUTTON_RUBBER:     paintMode=MODE_RUBBER;          paintAtt=ATT_NULL;                           break;
-                case BUTTON_FILLBUCKET: paintMode=MODE_FILL;            paintAtt=ATT_NULL;                           break;
-                case BUTTON_GETCOLOR:   paintMode=MODE_GETCOLOR;        paintAtt=ATT_NULL;                           break;
-                case BUTTON_LUPE:       paintMode=MODE_LUPE;            paintAtt=ATT_NULL;                           break;
-                case BUTTON_PENCIL:     paintMode=MODE_PENCIL;          paintAtt=ATT_NULL;                           break;
-                case BUTTON_BRUSH:      paintMode=MODE_BRUSH;           paintAtt=ATT_BRUSHES;                        break;
-                case BUTTON_SPRAY:      paintMode=MODE_SPRAY;           paintAtt=ATT_NULL;                           break;
-                case BUTTON_TEXT:       paintMode=MODE_TEXT;            paintAtt=ATT_TRANSPARENT;                    break;
-                case BUTTON_FIGURES:    paintMode=MODE_GEOMETRY;        paintAtt=ATT_FIGURE;                         break;
+                case BUTTON_SELECTAREA: paintMode=0; selecting=true;paintAtt=ATT_TRANSPARENT;break;
+                case BUTTON_SELECTRECT: paintMode=MODE_SELECT;paintAtt=ATT_TRANSPARENT; selecting=true;  break;
+                case BUTTON_RUBBER:     paintMode=MODE_RUBBER;paintAtt=ATT_NULL;  break;
+                case BUTTON_FILLBUCKET: paintMode=MODE_FILL;paintAtt=ATT_NULL;    break;
+                case BUTTON_GETCOLOR:   paintMode=MODE_GETCOLOR;paintAtt=ATT_NULL;break;
+                case BUTTON_LUPE:       paintMode=MODE_LUPE;paintAtt=ATT_NULL;            break;
+                case BUTTON_PENCIL:     paintMode=MODE_PENCIL;paintAtt=ATT_NULL;  break;
+                case BUTTON_BRUSH:      paintMode=MODE_BRUSH;paintAtt=ATT_NULL;ShowWindow(buttonNoTransparent,SW_HIDE) ;           break;
+                case BUTTON_SPRAY:      paintMode=MODE_SPRAY;paintAtt=ATT_NULL;   break;
+                case BUTTON_TEXT:       paintMode=MODE_TEXT;paintAtt=ATT_TRANSPARENT;            break;
+                case BUTTON_FIGURES:    paintMode=MODE_GEOMETRY;paintAtt=ATT_FIGURE;             break;
 
-                case BUTTON_TRANSPARENT:    transparent=true;       break;
-                case BUTTON_NOTRANSPARENT:  transparent=false;      break;
+                case BUTTON_TRANSPARENT: transparent=true;       break;
+                case BUTTON_NOTRANSPARENT: transparent=false;    break;
 
-                case BUTTON_FIGURE_MODE_FRAME:      figureMode=FMODE_FRAME;         break;
-                case BUTTON_FIGURE_MODE_FILLFRAME:  figureMode=FMODE_FILLFRAME;     break;
-                case BUTTON_FIGURE_MODE_FILL:       figureMode=FMODE_FILL;          break;
+                case BUTTON_FIGURE_MODE_FRAME: figureMode=FMODE_FRAME; break;
+                case BUTTON_FIGURE_MODE_FILLFRAME: figureMode=FMODE_FILLFRAME; break;
+                case BUTTON_FIGURE_MODE_FILL: figureMode=FMODE_FILL; break;
 
                 case BUTTON_FIGURE_RECTANGLE: SendMessage(hParentWindow,WM_COMMAND,CMD_SET_FIGURE,RECTANGLE);paintMode=MODE_GEOMETRY;paintAtt=ATT_FIGURE;break;
                 case BUTTON_FIGURE_ELLIPSE: SendMessage(hParentWindow,WM_COMMAND,CMD_SET_FIGURE,ELLIPSE);paintMode=MODE_GEOMETRY;paintAtt=ATT_FIGURE;break;
@@ -262,7 +246,7 @@ int CPaintTools::onCommand(HWND hwnd,UINT message,WPARAM wParam,LPARAM lParam){
 
                 default:                paintMode=0;
             }
-            if(wParam<BUTTON_FIGURES)
+            if(wParam<=BUTTON_TRANSPARENT)
             {
             SendMessage((HWND)lParam, BM_SETSTATE, true, 0);
             lastSelectedButton=(HWND)lParam;
@@ -322,14 +306,8 @@ int CPaintTools::onLeftButtonDown(short x,short y,int keys){
         SendMessage(hParentWindow,WM_COMMAND,CMD_SET_COLOR_2,color2);
         }
     }
-    else if(y>292+64&&y<292+64+72)
-    {
-        brush[0]=x-clientRect.right/2;
-        brush[1]=y-(292+64+36);
-        SendMessage(hParentWindow,WM_COMMAND,CMD_SET_BRUSH_DIR,MAKELONG(brush[0],brush[1]));
-        //MessageBox(0,0,0,0);
-    }
-    InvalidateRect(hWindow,0,1);
+    InvalidateRect(hWindow,0,true);
     SendMessage(hWindow,WM_PAINT,0,0);
     return 0;
 }
+

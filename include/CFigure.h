@@ -219,11 +219,7 @@ public:
         srand(seed);
         for(int i=0;i<100;i++)
         {
-            int x=start.x-size/2+rand()%size;
-            int y=start.y-size/2+rand()%size;
-            COLORREF colorP=GetPixel(hdc,x,y);
-            COLORREF colorF=RGB((GetRValue(colorP)*3+GetRValue(color))/4,(GetGValue(colorP)*3+GetGValue(color))/4,(GetBValue(colorP)*3+GetBValue(color))/4);
-            SetPixel(hdc,x,y,colorF);
+        SetPixel(hdc,start.x-size/2+rand()%size,start.y-size/2+rand()%size,color);
         }
     }
     CFigure* clone()
@@ -442,6 +438,7 @@ private:
         return temp;
     }
 };
+
 class CPolygon :public CFigure{
     bool transparent;
     int size;

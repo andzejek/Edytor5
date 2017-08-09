@@ -1,26 +1,21 @@
 #include "CEditor.h"
-
 int CEditor::onCreate(CREATESTRUCT *cs){
             SendMessage(hWindow,WM_SYSCOLORCHANGE,0,0);
-
+            paintBuff=0;
             paintToolsWnd=CreateWindowEx(WS_EX_TOOLWINDOW,PaintToolsClassName,L"Paint Tools",WS_OVERLAPPEDWINDOW^(WS_THICKFRAME|WS_MAXIMIZEBOX) ,0,0,80,454,hWindow,0,0,0);
             ShowWindow(paintToolsWnd,SW_SHOW);
             colorPaletteWnd=CreateWindowEx(WS_EX_TOOLWINDOW,ColorPaletteClassName,L"Color Palette",WS_OVERLAPPEDWINDOW|WS_HSCROLL ,400,400,300,300,hWindow,0,0,0);
             ShowWindow(colorPaletteWnd,SW_SHOW);
             edit = CreateWindowEx( 0, L"EDIT", L"", WS_CHILD|ES_AUTOHSCROLL|ES_AUTOVSCROLL|ES_MULTILINE, 0,0, 100,100, hWindow, 0,0, NULL );
-            //shapesToolWnd=CreateWindowEx(WS_EX_TOOLWINDOW,ShapesToolClassName,L"Shapes<-TEST",WS_OVERLAPPEDWINDOW ,700,400,300,200,hWindow,0,0,0);
-            //ShowWindow(shapesToolWnd,SW_SHOW);
-
+            shapesToolWnd=CreateWindowEx(WS_EX_TOOLWINDOW,ShapesToolClassName,L"Shapes<-TEST",WS_OVERLAPPEDWINDOW ,700,400,300,200,hWindow,0,0,0);
+            ShowWindow(shapesToolWnd,SW_SHOW);
             hdc=GetDC(hWindow);
 
             CMenu menu;
             menu.set(hWindow);
 
             paintBuff=new CPaintBuffer(hWindow,800,600);
-            ///for(int i=0;i<10;i++) layers[i]=new CPaintBuffer(hWindow,800+rand()%500,600+rand()%500);
-            ///paintBuff=layers[0];
-            ///for(int i=0;i<10000;i++)
-            ///paintBuff->resize(500+rand()%500,500+rand()%500); //TEST
+
             paintMode=MODE_PENCIL;
             penSize=10;
             color1=0;
@@ -32,7 +27,8 @@ int CEditor::onCreate(CREATESTRUCT *cs){
             SendMessage(paintToolsWnd,WM_COMMAND,CMD_SET_PEN_SIZE,penSize);
             SendMessage(paintToolsWnd,WM_COMMAND,CMD_SET_COVER,cover);
 
-            if(GetDeviceCaps(hdc,BITSPIXEL)!=32) onDestroy();///???
+            if(GetDeviceCaps(hdc,BITSPIXEL)!=32) onDestroy();
+
             return 0;
 }
 int CEditor::onPaint(){
@@ -47,46 +43,21 @@ int CEditor::onPaint(){
             return 0;
 }
 int CEditor::onLeftButtonDown(short x,short y,int keys){
-    POINT paintBuffSize=paintBuff->getSize();
-                RECT drawRect=paintBuff->getDrawRect();
-                x=(x-drawRect.left)*paintBuffSize.x/drawRect.right;
-                y=(y-drawRect.top)*paintBuffSize.y/drawRect.bottom;
-                /**POINT temp={x,y};
-                POINT curr=paintBuff->resolveCoordToMe(temp);
-                x=curr.x;
-                                y=curr.y;*/
-                leftMouseButtonDownPos.x=x;
-                leftMouseButtonDownPos.y=y;
-                lf.lfHeight=-MulDiv(penSize, GetDeviceCaps(hdc, LOGPIXELSY), 72);
-                if(selecting)
-                {
-                    if(x>selectStart.x&&x<selectEnd.x)
-                    if(y>selectStart.y&&y<selectEnd.y)
-                    {
-                        int selectWidth=selectEnd.x-selectStart.x;
-                        int selectHeight=selectEnd.y-selectStart.y;
-                        if(((float)x-selectStart.x)/selectWidth<0.1f)changeLeftSelectRectBorder=true;
-                        else if(((float)x-selectStart.x)/selectWidth>0.9f)changeRightSelectRectBorder=true;
-                        else if(((float)y-selectStart.y)/selectHeight<0.1f)changeTopSelectRectBorder=true;
-                        else if(((float)y-selectStart.y)/selectHeight>0.9f)changeBottomSelectRectBorder=true;
-                        else changeSelectRectPos=true;
-                        return 0;
-                    }
-                }
-                lButtonHold=true;
-                ///if(paintMode)
+                if(paintMode)
 
                 selecting=false;
                 RECT rect;
                 GetClientRect(hWindow,&rect);
                 int x1=x;
                 int y1=y;
-
-                if(paintMode==MODE_LUPE) {
-                        paintBuff->scaleUp();
-                        onVScroll(997);
-                        onHScroll(997);
-                }
+                POINT paintBuffSize=paintBuff->getSize();
+                RECT drawRect=paintBuff->getDrawRect();
+                x=(x-drawRect.left)*paintBuffSize.x/drawRect.right;
+                y=(y-drawRect.top)*paintBuffSize.y/drawRect.bottom;
+                leftMouseButtonDownPos.x=x;
+                leftMouseButtonDownPos.y=y;
+                lButtonHold=true;
+                if(paintMode==MODE_LUPE) paintBuff->scaleUp();
                 if(paintMode==MODE_GEOMETRY)
                 {
                     if(figure==POLYGON)
@@ -186,13 +157,7 @@ int CEditor::onLeftButtonDown(short x,short y,int keys){
                 return 0;
 }
 int CEditor::onRightButtonDown(short x,short y,int keys){
-    if(paintMode==MODE_LUPE)
-    {
-        paintBuff->scaleDown();
-        onVScroll(997);
-        onHScroll(997);
-
-        }
+    if(paintMode==MODE_LUPE) paintBuff->scaleDown();
     if(figure==POLYGON)
                     {
                         bool transparent=false;
@@ -207,44 +172,13 @@ int CEditor::onRightButtonDown(short x,short y,int keys){
     return 0;
 }
 int CEditor::onMouseMove(short x,short y,int keys){
+    int x1=x;
+    int y1=y;
     prevReal.x=x;prevReal.y=y;
     POINT paintBuffSize=paintBuff->getSize();
     RECT drawRect=paintBuff->getDrawRect();
     x=(x-drawRect.left)*paintBuffSize.x/drawRect.right;
     y=(y-drawRect.top)*paintBuffSize.y/drawRect.bottom;
-
-    if(selecting)
-    {
-        if(changeLeftSelectRectBorder)
-        {
-            selectStart.x=x;
-        }
-        if(changeRightSelectRectBorder)
-        {
-            selectEnd.x=x;
-        }
-        if(changeTopSelectRectBorder)
-        {
-            selectStart.y=y;
-        }
-        if(changeBottomSelectRectBorder)
-        {
-            selectEnd.y=y;
-        }
-        if(changeSelectRectPos)
-        {
-            selectStart.x+=(x-leftMouseButtonDownPos.x);
-            selectStart.y+=(y-leftMouseButtonDownPos.y);
-            selectEnd.x+=(x-leftMouseButtonDownPos.x);
-            selectEnd.y+=(y-leftMouseButtonDownPos.y);
-            leftMouseButtonDownPos.x=x;
-            leftMouseButtonDownPos.y=y;
-        }
-    }
-    int x1=x;
-    int y1=y;
-
-
     POINT curr;curr.x=x;curr.y=y;
     if(lButtonHold){
 
@@ -285,10 +219,10 @@ int CEditor::onMouseMove(short x,short y,int keys){
                         break;}
                     case MODE_BRUSH:{
                         POINT points[4];
-                        points[0].x=prev.x-brush[0]; points[0].y=prev.y-brush[1];
-                        points[1].x=prev.x+brush[0]; points[1].y=prev.y+brush[1];
-                        points[2].x=curr.x+brush[0]; points[2].y=curr.y+brush[1];
-                        points[3].x=curr.x-brush[0]; points[3].y=curr.y-brush[1];
+                        points[0].x=prev.x-penSize/2; points[0].y=prev.y;
+                        points[1].x=prev.x+penSize/2; points[1].y=prev.y;
+                        points[2].x=curr.x+penSize/2; points[2].y=curr.y;
+                        points[3].x=curr.x-penSize/2; points[3].y=curr.y;
                         CPolygon polygon(points,4,penSize/5,color1,color2,transparent);
                             paintBuff->drawFigure(&polygon);break;}
                     case MODE_UNDEFINED:break;
@@ -345,14 +279,13 @@ int CEditor::onLeftButtonUp(short x,short y,int keys){
                         paintBuff->drawFigure(&ellipse);
                     }
                     if(figure==RECTANGLE)
-                    {                        POINT tempS;
+                    {
+                         POINT tempS;
                         tempS.x=selectStart.x+penSize/2;
                         tempS.y=selectStart.y+penSize/2;
                         POINT tempE;
                         tempE.x=selectEnd.x-penSize/2;
                         tempE.y=selectEnd.y-penSize/2;
-                        ///if(tempS.x>tempE.x) tempE.x=tempS.x;
-                        ///if(tempS.y>tempE.y) tempE.y=tempS.y;
                         CRectangle rectangle(tempS,tempE,penSize,color1,color2,transparent);
                         paintBuff->drawFigure(&rectangle);
                     }
@@ -379,11 +312,6 @@ int CEditor::onLeftButtonUp(short x,short y,int keys){
                     ERROR_TEST
                 }
                 SendMessage(hWindow,WM_PAINT,0,0);
-                changeLeftSelectRectBorder=false;
-                changeRightSelectRectBorder=false;
-                changeTopSelectRectBorder=false;
-                changeBottomSelectRectBorder=false;
-                changeSelectRectPos=false;
                 return 0;
 }
 int CEditor::onDestroy(){
@@ -402,8 +330,7 @@ int CEditor::onClose(){
     return 0;
 }
 int CEditor::onKeyDown(int key,int flags){
-            ///if(GetAsyncKeyState(188)) {currentLayer--; if(currentLayer<0) currentLayer=0;paintBuff=layers[currentLayer];SendMessage(hWindow,WM_PAINT,0,0);UpdateWindow(hWindow);paintBuff->scaled=true;}
-            ///if(GetAsyncKeyState(190)) {currentLayer++; if(currentLayer>=10) currentLayer=9;paintBuff=layers[currentLayer];SendMessage(hWindow,WM_PAINT,0,0);UpdateWindow(hWindow);paintBuff->scaled=true;}
+
             if(GetAsyncKeyState(VK_CONTROL))
             {
                 ///FILE
@@ -415,7 +342,6 @@ int CEditor::onKeyDown(int key,int flags){
                 if(key=='X') SendMessage(hWindow,WM_COMMAND,MENU_CUT,0);
                 if(key=='C') SendMessage(hWindow,WM_COMMAND,MENU_COPY,0);
                 if(key=='V') SendMessage(hWindow,WM_COMMAND,MENU_PASTE,0);
-                if(key=='A') SendMessage(hWindow,WM_COMMAND,MENU_SELECT_ALL,0);
 
                 return 0;
             }
@@ -465,11 +391,6 @@ int CEditor::onKeyDown(int key,int flags){
             {
                 SetLayeredWindowAttributes(hWindow, RGB(255,0,255), 255, LWA_ALPHA||LWA_COLORKEY);
             }
-            if(key==VK_DELETE)
-            {
-                CRectangle rectangle(selectStart,selectEnd,0,color2,color2,false);
-                paintBuff->drawFigure(&rectangle);
-            }
             SendMessage(hWindow,WM_PAINT,0,0);
             return 0;
 
@@ -477,7 +398,6 @@ int CEditor::onKeyDown(int key,int flags){
 int CEditor::onCommand(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam){
             if(wParam==CMD_SET_PEN_SIZE) penSize=lParam;
             if(wParam==CMD_SET_COVER) cover=lParam;
-            if(wParam==CMD_SET_BRUSH_DIR) { brush[0]=LOWORD(lParam);brush[1]=HIWORD(lParam);}
             if(wParam==CMD_SELECT_PAINT_TOOL){
                 int prevMode=paintMode;
                 paintMode=(PaintMode)lParam;
@@ -572,31 +492,33 @@ int CEditor::onCommand(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam){
                     HBITMAP bmp=(HBITMAP)GetClipboardData(CF_BITMAP);
                     if(bmp!=0)
                     {
-                        BITMAP ibmp;
-                        GetObject(bmp,sizeof(ibmp),&ibmp);
-                        HDC hdc2=CreateCompatibleDC(hdc);
-                        HDC hdc3=CreateCompatibleDC(hdc);
-                        HBITMAP temp=CreateCompatibleBitmap(hdc,selectEnd.x-selectStart.x, selectEnd.y-selectStart.y);
-                        HBITMAP oldFromHdc3=(HBITMAP)SelectObject(hdc3,temp);
-                        HBITMAP old=(HBITMAP)SelectObject(hdc2,bmp);
-                        printf("probuje wkleic %d %d!\n",(int)ibmp.bmWidth,(int)ibmp.bmHeight);
-                        SetStretchBltMode(hdc3,HALFTONE);
-                        StretchBlt(hdc3, 0, 0, selectEnd.x-selectStart.x, selectEnd.y-selectStart.y, hdc2, 0, 0, ibmp.bmWidth, ibmp.bmHeight, SRCCOPY);
-                        GetObject(temp,sizeof(ibmp),&ibmp);
-                        //StretchBlt(hdc, selectStart.x, selectStart.y, selectEnd.x-selectStart.x, selectEnd.y-selectStart.y, hdc3, 0, 0, ibmp.bmWidth, ibmp.bmHeight, SRCCOPY);
-                        CPasteBMP cpbmp(selectStart,selectEnd,hdc3,ibmp.bmWidth,ibmp.bmHeight);
-                        paintBuff->drawFigure(&cpbmp);
-                        SelectObject(hdc2,old);
-                        SelectObject(hdc3,oldFromHdc3);
-                        DeleteObject(temp);
-                        DeleteDC(hdc3);
-                        DeleteDC(hdc2);
+                    BITMAP ibmp;
+                    GetObject(bmp,sizeof(ibmp),&ibmp);
+                    HDC hdc2=CreateCompatibleDC(hdc);
+                    HDC hdc3=CreateCompatibleDC(hdc);
+                    HBITMAP temp=CreateCompatibleBitmap(hdc,selectEnd.x-selectStart.x, selectEnd.y-selectStart.y);
+                    HBITMAP oldFromHdc3=(HBITMAP)SelectObject(hdc3,temp);
+                    HBITMAP old=(HBITMAP)SelectObject(hdc2,bmp);
+                    printf("probuje wkleic %d %d!\n",(int)ibmp.bmWidth,(int)ibmp.bmHeight);
+                    SetStretchBltMode(hdc3,HALFTONE);
+                    StretchBlt(hdc3, 0, 0, selectEnd.x-selectStart.x, selectEnd.y-selectStart.y, hdc2, 0, 0, ibmp.bmWidth, ibmp.bmHeight, SRCCOPY);
+                    GetObject(temp,sizeof(ibmp),&ibmp);
+                    //StretchBlt(hdc, selectStart.x, selectStart.y, selectEnd.x-selectStart.x, selectEnd.y-selectStart.y, hdc3, 0, 0, ibmp.bmWidth, ibmp.bmHeight, SRCCOPY);
+                    CPasteBMP cpbmp(selectStart,selectEnd,hdc3,ibmp.bmWidth,ibmp.bmHeight);
+                    paintBuff->drawFigure(&cpbmp);
+                    SelectObject(hdc2,old);
+                    SelectObject(hdc3,oldFromHdc3);
+                    DeleteObject(temp);
+
+                    DeleteDC(hdc3);
+                    DeleteDC(hdc2);
                     }
                     DeleteObject(bmp);
                     CloseClipboard();
                 }
             }
-            if(wParam==MENU_SELECT_ALL){
+            if(wParam==MENU_SELECT_ALL)
+            {
                 selectStart.x=0;
                 selectStart.y=0;
                 selectEnd.x=paintBuff->getWidth();
@@ -609,7 +531,7 @@ int CEditor::onCommand(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam){
             }
             if(wParam==MENU_ADD_SKETCH){
                 wchar_t fileNameBuff[256];
-                if(OpenSaveImageDialog(hwnd, fileNameBuff, 256, false))
+                if(OpenSaveDialog(hwnd, fileNameBuff, 256, false))
                 {
                     paintBuff->addSketch(fileNameBuff);
                 }
@@ -619,7 +541,7 @@ int CEditor::onCommand(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam){
             if(wParam==MENU_PALETE) ShowWindow(colorPaletteWnd,SW_SHOW);
             if(wParam==MENU_PALETE_FILE){
                 wchar_t fileNameBuff[256];
-                if(OpenSaveImageDialog(hwnd, fileNameBuff, 256, false))
+                if(OpenSaveDialog(hwnd, fileNameBuff, 256, false))
                 {
                 HWND temp=CreateWindowEx(WS_EX_TOOLWINDOW,ColorPaletteClassName,L"Paleta",WS_OVERLAPPEDWINDOW|WS_VISIBLE ,400,400,300,300,hWindow,0,0,fileNameBuff);
                 SetWindowText(temp,fileNameBuff);
@@ -631,19 +553,20 @@ int CEditor::onCommand(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam){
                     int ret = DialogBoxW( GetModuleHandle( NULL ), MAKEINTRESOURCE( 200 ), hwnd, DIALOG_NEW_PROC );
                     if(ret)
                     {
-                        DIALOGNEWRESULT *dnr=(DIALOGNEWRESULT*)ret;
+                    DIALOGNEWRESULT *dnr=(DIALOGNEWRESULT*)ret;
                     //printf("Koniec dialogu width=%d height=%d\n",dnr->width,dnr->height);
-                        delete paintBuff;
-                        paintBuff=new CPaintBuffer(hwnd,dnr->width,dnr->height);
-                        SendMessage(hwnd,WM_PAINT,0,0);
-                        delete dnr;
+                    delete paintBuff;
+
+                    paintBuff=new CPaintBuffer(hwnd,dnr->width,dnr->height);
+                    SendMessage(hwnd,WM_PAINT,0,0);
+                    delete dnr;
                     }
                     //else MessageBox(hWindow,L"FAIL",L"ERROR",MB_ICONERROR|MB_OK);
                     //paintBuff->resize(2000,3000);
             }
             if(wParam==MENU_SAVE_AS){
                 wchar_t fileNameBuff[256];
-                if(OpenSaveImageDialog(hwnd, fileNameBuff, 256, true))
+                if(OpenSaveDialog(hwnd, fileNameBuff, 256, true))
                 {
                 paintBuff->saveToFile(fileNameBuff);
                 SetWindowText(hwnd,fileNameBuff);
@@ -656,7 +579,7 @@ int CEditor::onCommand(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam){
             }
             if(wParam==MENU_OPEN){
                 wchar_t fileNameBuff[256];
-                if(OpenSaveImageDialog(hwnd, fileNameBuff, 256, false))
+                if(OpenSaveDialog(hwnd, fileNameBuff, 256, false))
                 {
 
                 paintBuff->loadFromFile(fileNameBuff);
@@ -664,7 +587,6 @@ int CEditor::onCommand(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam){
                 }
             }
             SendMessage(hwnd,WM_PAINT,0,0);
-            lf.lfHeight=-MulDiv(penSize, GetDeviceCaps(hdc, LOGPIXELSY), 72);
             return 0;
 }
 int CEditor::onMouseWheel(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam){
@@ -690,7 +612,7 @@ int CEditor::onMouseWheel(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 
             return 0;
 }
-BOOL OpenSaveImageDialog(HWND hwnd, LPWSTR szFileNameBuff, WORD wBuffSize, BOOL bSave){
+BOOL OpenSaveDialog(HWND hwnd, LPWSTR szFileNameBuff, WORD wBuffSize, BOOL bSave){
     ZeroMemory(szFileNameBuff,wBuffSize);
    OPENFILENAMEW ofn;
 
@@ -698,12 +620,12 @@ BOOL OpenSaveImageDialog(HWND hwnd, LPWSTR szFileNameBuff, WORD wBuffSize, BOOL 
 
    ofn.lStructSize = sizeof(ofn);
    ofn.hwndOwner = hwnd; //okno
-   ofn.lpstrFilter = L"Image Files\0*.bmp;*.jpg;*.png;*.jpeg;*.jpe\0All Files (*.*)\0*.*\0\0"; //lista wyboru maski w formacie
+   ofn.lpstrFilter = L"BmpFiles (*.bmp)\0*.bmp\0All Files (*.*)\0*.*\0\0"; //lista wyboru maski w formacie
 // "nazwa\0rozszerzenie\0nazwa\0rozszerzenie...nazwa\0rozszerzenie\0\0"
 
    ofn.lpstrFile = szFileNameBuff;
    ofn.nMaxFile = wBuffSize; //rozmiar bufora szFileNameBuff, najlepiej MAX_PATH
-   ofn.lpstrDefExt = L"png"; //domyślne rozszerzenie
+   ofn.lpstrDefExt = L"txt"; //domyślne rozszerzenie
 
    if(bSave) //zapis lub odczyt
    {
@@ -860,15 +782,10 @@ int CEditor::onHScroll(WPARAM wParam){
     UpdateWindow( hWindow );
     return 0;
 }
-int CEditor::onSysColorChange(){
-    HDC screenDC=GetDC(0);
-    if(GetDeviceCaps(screenDC,BITSPIXEL)!=32){
-        MessageBox(hWindow,L"Only 32bit color screen",L"FATAL ERROR",MB_ICONSTOP|MB_OK);
-        DestroyWindow(hWindow);
-    }
-    return 0;
-}
 void CEditor::drawPaintBuffer(CPaintBuffer *paintBuffer){
+    //paintBuff->drawToRenderBuffer(renderBuff);
+    //renderBuff->draw(hdc);
+
     RECT rect;
     rect.left=selectStart.x;
     rect.right=selectEnd.x;
@@ -879,6 +796,9 @@ void CEditor::drawPaintBuffer(CPaintBuffer *paintBuffer){
     paintBuff->drawPaintBuffToRenderBuff();
     int t2=rdtsc()-t;
     printf("1zajelo to=%d\n",t2);
+
+
+
     if(paintMode==MODE_TEXT)paintBuff->drawTextToRenderBuff(rect,textBuffor,&lf,color1,color2,transparent);
                     bool transparent=false;
                     int color1=(this)->color1;
@@ -890,33 +810,60 @@ void CEditor::drawPaintBuffer(CPaintBuffer *paintBuffer){
     paintBuff->drawRenderBuffToDC(hdc);
     t2=rdtsc()-t;
     printf("2zajelo to=%d\n",t2);
+    //paintBuff->drawFullScreen(edit);///cialo tego ma byc tutaj bo... obsługa warstw?
+
     rect=paintBuff->getDrawRect();
     HRGN hrgn=CreateRectRgn(rect.left,rect.top,rect.left+rect.right,rect.top+rect.bottom);
-    SelectClipRgn(hdc,hrgn);///ten region po to zeby nie wychodzic z rysowaniem poza paintbuffer
+    SelectClipRgn(hdc,hrgn);
+
+    //alphaBuff->drawFullScreen();
+    /*BLENDFUNCTION bf;
+    bf.AlphaFormat=AC_SRC_ALPHA;
+    bf.BlendFlags=0;
+    bf.BlendOp=AC_SRC_OVER;
+    bf.SourceConstantAlpha=255;*/
+    /*for(int k=0;k<1;k++)
+    for(int i=0;i<600;i++)
+    for(int j=0;j<800;j++) {
+            nextBuff->pRgb[(i*800+j)*4+2]=(paintBuff->pRgb[(i*800+j)*4+2]+alphaBuff->pRgb[(i*800+j)*4+2])/2;
+            nextBuff->pRgb[(i*800+j)*4+1]=(paintBuff->pRgb[(i*800+j)*4+1]+alphaBuff->pRgb[(i*800+j)*4+1])/2;
+            nextBuff->pRgb[(i*800+j)*4]=(paintBuff->pRgb[(i*800+j)*4]+alphaBuff->pRgb[(i*800+j)*4])/2;
+    }
+    nextBuff->x=paintBuff->x;
+    nextBuff->y=paintBuff->y;
+    nextBuff->scaleX=paintBuff->scaleX;
+    nextBuff->scaleY=paintBuff->scaleY;
+    //nextBuff->scaled=paintBuff->scaled;
+    nextBuff->drawFullScreen();*/
+
+    //StretchBlt(hdc,0,0,800,600,nextBuff->memDC,0,0,800,600,SRCCOPY);
+    ///for(int i=0;i<600;i++)
+    ///for(int j=0;j<800;j++) SetPixel(hdc,j,i,RGB(paintBuff->pRgb[(i*800+j)*4],0,0));
+    ///MSDN: AlphaBlend does not support mirroring. If either the width or height of the source or destination is negative, this call will fail.
+    //AlphaBlend(hdc,0,0,800,600,alphaBuff->getMemDC(),0,0,800,600,bf);
+    ///ERROR_TEST
+    ///do tego rysowanie ksztaltów na przednim buforze. np ksztalt gumki,
     if(paintMode==MODE_RUBBER)
     {
         HBRUSH old=(HBRUSH)SelectObject(hdc,CreateSolidBrush(color2));
         Rectangle(hdc,prevReal.x-penSize/2/paintBuffer->getScaleX(),prevReal.y-penSize/2/paintBuffer->getScaleY(),prevReal.x+penSize/2/paintBuffer->getScaleX(),prevReal.y+penSize/2/paintBuffer->getScaleY());
         DeleteObject((HBRUSH)SelectObject(hdc,old));
     }
-
+    //TextOut(hdc,prevReal.x,prevReal.y,textBuffor,wcslen(textBuffor));///do poprawy chyba w paintbuforze....
+    /*if(selecting)
+    {
+            DeleteObject(SelectObject(hdc,CreatePen(PS_DOT,1,RGB(128,128,128))));
+            DeleteObject(SelectObject(hdc, GetStockObject(HOLLOW_BRUSH)));
+            Rectangle(hdc,selectStartReal.x,selectStartReal.y,selectEndReal.x,selectEndReal.y);
+                //paintBuff->selectArea(selectStartReal,selectEndReal);
+    }*/
     DeleteObject(hrgn);
 }
-void CEditor::switchFullScreen(){
-        if(fullScreen)
-                    {
-                        fullScreen=false;
-                        SetWindowLong(hWindow,GWL_STYLE,WS_OVERLAPPEDWINDOW|WS_VSCROLL|WS_HSCROLL);
-                        ShowWindow(hWindow,SW_SHOWMAXIMIZED);
-                    }
-                    else
-                    {
-                        fullScreen=true;
-                        SetWindowLong(hWindow,GWL_STYLE,WS_POPUP);
-                        SetMenu(hWindow,0);
-                        menuIsVisible=false;
-                        ShowWindow(hWindow,SW_SHOW);
-                        //menu.set(hWindow);
-                        SetWindowPos(hWindow,0,0,0,GetSystemMetrics(SM_CXSCREEN),GetSystemMetrics(SM_CYSCREEN),SWP_NOZORDER | SWP_SHOWWINDOW);
-                    }
+int CEditor::onSysColorChange(){
+    HDC screenDC=GetDC(0);
+    if(GetDeviceCaps(screenDC,BITSPIXEL)!=32){
+        MessageBox(hWindow,L"Only 32bit color screen",L"FATAL ERROR",MB_ICONSTOP|MB_OK);
+        DestroyWindow(hWindow);
+    }
+    return 0;
 }

@@ -2,7 +2,7 @@
 <CodeBlocks_project_file>
 	<FileVersion major="1" minor="6" />
 	<Project>
-		<Option title="Edytor5" />
+		<Option title="Edytor4" />
 		<Option pch_mode="2" />
 		<Option compiler="gcc" />
 		<Build>
@@ -32,8 +32,6 @@
 					<Add option="-s" />
 					<Add library="C:/Program Files (x86)/CodeBlocks/MinGW/lib/libgdi32.a" />
 					<Add library="C:/Program Files (x86)/CodeBlocks/MinGW/lib/libmsimg32.a" />
-					<Add library="C:/Program Files (x86)/CodeBlocks/MinGW/lib/libgdiplus.a" />
-					<Add library="C:/Program Files (x86)/CodeBlocks/MinGW/lib/libole32.a" />
 				</Linker>
 			</Target>
 		</Build>
@@ -69,7 +67,6 @@
 		<Unit filename="src/CPaintTools.cpp" />
 		<Unit filename="src/CShapesTool.cpp" />
 		<Unit filename="src/CWindowEvents.cpp" />
-		<Unit filename="stdafx.cpp" />
 		<Unit filename="stdafx.h" />
 		<Extensions>
 			<code_completion />

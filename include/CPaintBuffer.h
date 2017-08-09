@@ -55,6 +55,15 @@ public:
             bf.SourceConstantAlpha=111;
             StretchBlt(renderDC, 0, 0, width, height, memDC, 0, 0, width, height, SRCCOPY);
             AlphaBlend(renderDC,0,0,width,height,sketchDC,0,0,width,height,bf);
+
+            //ERROR_TEST;
+            /*for(int i=0;i<width;i++)
+            for(int j=0;j<height;j++)
+            {
+                renderBytes[(i*height+j)*4+2]=(memBytes[(i*height+j)*4+2]+sketchBytes[(i*height+j)*4+2])/2;
+                renderBytes[(i*height+j)*4+1]=(memBytes[(i*height+j)*4+1]+sketchBytes[(i*height+j)*4+1])/2;
+                renderBytes[(i*height+j)*4]=(memBytes[(i*height+j)*4]+sketchBytes[(i*height+j)*4])/2;
+            }*/
         }
         else
         {
@@ -72,6 +81,11 @@ public:
     {
         CText2 text2(rect,text,lplogfont,color,color2,transparent);
         drawFigure(&text2);
+        /*HFONT oldf=(HFONT)SelectObject(memDC,CreateFontIndirect( lplogfont ));
+        SetBkMode(memDC, TRANSPARENT);
+        DrawText(memDC,text,wcslen(text),&rect,DT_EDITCONTROL|DT_WORDBREAK);
+        printf("juz narysowalem do DC!\n");
+        DeleteObject(SelectObject(memDC,oldf));*/
     }
     void drawTextToRenderBuff(RECT rect,wchar_t* text,LPLOGFONT lplogfont,COLORREF color,COLORREF color2,bool transparent)
     {
@@ -82,6 +96,7 @@ public:
         if(transparent) SetBkMode(renderDC,TRANSPARENT);
         else SetBkMode(renderDC,OPAQUE);
         DrawText(renderDC,text,wcslen(text),&rect,DT_EDITCONTROL|DT_WORDBREAK);
+        printf("juz narysowalem do rDC!\n");
         DeleteObject(SelectObject(renderDC,oldf));
     }
     void drawSelectRectToRenderBuff(RECT rect)
@@ -89,25 +104,16 @@ public:
 
         HPEN old=(HPEN)SelectObject(renderDC,CreatePen(PS_DOT,1,RGB(128,128,128)));
         HBRUSH old2=(HBRUSH)SelectObject(renderDC, GetStockObject(HOLLOW_BRUSH));
-        SetBkMode(renderDC,TRANSPARENT);
         Rectangle(renderDC,rect.left,rect.top,rect.right,rect.bottom);
         DeleteObject(SelectObject(renderDC,old));
         DeleteObject(SelectObject(renderDC,old2));
 
     }
-    POINT resolveCoordToMe(POINT _point)
-    {
-                POINT temp;
-                POINT paintBuffSize=getSize();
-                RECT drawRect=getDrawRect();
-                temp.x=(_point.x-drawRect.left)*paintBuffSize.x/drawRect.right;
-                temp.y=(_point.y-drawRect.top)*paintBuffSize.y/drawRect.bottom;
-                return temp;
-    }
     void drawRenderBuffToDC(HDC hdc)
     {
         drawFullScreen();
     }
+    HDC getMemDC(){return memDC;}///do wyrzucenia
     void drawFullScreen();///do wyrzucenia
     virtual ~CPaintBuffer();
     POINT getSize(){POINT pt;pt.x=width;pt.y=height;return pt;}///do wyrzucenia
@@ -139,10 +145,10 @@ private:
     bool scaled;///do wyrzucenia
     list<CFigure*> figures;
 
-    HBITMAP oldMemBmp;
-    HBITMAP oldRestoreBmp;
-    HPEN oldMemPen,oldRestorePen;
-    HBRUSH oldMemBrush,oldRestoreBrush;
+    HBITMAP oldBm;
+    HBITMAP oldBm2;
+    HPEN oldPen,oldPen2;
+    HBRUSH oldBrush,oldBrush2;
 
     HBITMAP oldRenderBmp;
     HBITMAP oldSketchBmp;
