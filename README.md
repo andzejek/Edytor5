@@ -21,4 +21,4 @@ libmsimg32.a<br>
 libgdiplus.a<br>
 libole32.a<br>
 
-![alt text](https://github.com/andzejek/Edytor5/blob/master/example.PNG)
+![alt text](https://github.com/andzejek/Edytor5/blob/master/example2.png)
