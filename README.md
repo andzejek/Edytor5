@@ -1,6 +1,7 @@
 # Edytor5
 
 Simple image editor written in c/c++.<br>
+edytor5->paincik<br>
 
 
 ![alt text](https://github.com/andzejek/Edytor5/blob/master/example2.png)<br>
